@@ -8,7 +8,7 @@
     <!-- Filters and Search -->
     <div class="filters-section">
       <el-row :gutter="20">
-        <el-col :span="6">
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <el-select v-model="statusFilter" placeholder="Status" clearable style="width: 100%">
             <el-option label="All" value="" />
             <el-option label="Completed" value="completed" />
@@ -17,7 +17,7 @@
           </el-select>
         </el-col>
         
-        <el-col :span="6">
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <el-select v-model="formatFilter" placeholder="Format" clearable style="width: 100%">
             <el-option label="All" value="" />
             <el-option label="Excel" value="excel" />
@@ -27,7 +27,7 @@
           </el-select>
         </el-col>
         
-        <el-col :span="6">
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <el-date-picker
             v-model="dateRange"
             type="daterange"
@@ -35,10 +35,11 @@
             start-placeholder="Start date"
             end-placeholder="End date"
             style="width: 100%"
+            :teleported="false"
           />
         </el-col>
         
-        <el-col :span="6">
+        <el-col :xs="24" :sm="12" :md="6" :lg="6" :xl="6">
           <el-input
             v-model="searchQuery"
             placeholder="Search reports..."
@@ -52,7 +53,7 @@
 
     <!-- Statistics Cards -->
     <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
+      <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon success">
@@ -66,7 +67,7 @@
         </el-card>
       </el-col>
       
-      <el-col :span="6">
+      <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon warning">
@@ -80,7 +81,7 @@
         </el-card>
       </el-col>
       
-      <el-col :span="6">
+      <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon danger">
@@ -94,7 +95,7 @@
         </el-card>
       </el-col>
       
-      <el-col :span="6">
+      <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon primary">
@@ -117,100 +118,173 @@
           <div class="table-actions">
             <el-button size="small" @click="refreshData">
               <el-icon><Refresh /></el-icon>
-              Refresh
+              <span class="btn-text">Refresh</span>
             </el-button>
             <el-button size="small" @click="exportHistory">
               <el-icon><Download /></el-icon>
-              Export
+              <span class="btn-text">Export</span>
             </el-button>
           </div>
         </div>
       </template>
       
-      <el-table
-        :data="filteredReports"
-        style="width: 100%"
-        v-loading="loading"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" />
-        
-        <el-table-column prop="name" label="Report Name" min-width="200">
-          <template #default="scope">
+      <!-- Mobile Cards View -->
+      <div v-if="isMobile" class="mobile-reports">
+        <div 
+          v-for="report in paginatedReports"
+          :key="report.id"
+          class="mobile-report-card"
+        >
+          <div class="mobile-card-header">
             <div class="report-name">
               <el-icon class="report-icon"><Document /></el-icon>
-              <div>
-                <div class="name">{{ scope.row.name }}</div>
-                <div class="description">{{ scope.row.description }}</div>
+              <span>{{ report.name }}</span>
+            </div>
+            <el-tag :type="getStatusTagType(report.status)" size="small">
+              {{ report.status }}
+            </el-tag>
+          </div>
+          
+          <div class="mobile-card-content">
+            <div class="report-meta">
+              <div class="meta-item">
+                <span class="meta-label">Format:</span>
+                <el-tag :type="getFormatTagType(report.format)" size="small">
+                  {{ report.format.toUpperCase() }}
+                </el-tag>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Created:</span>
+                <span>{{ formatDate(report.created_at) }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Size:</span>
+                <span>{{ formatFileSize(report.size) }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Duration:</span>
+                <span>{{ report.execution_time }}s</span>
               </div>
             </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="format" label="Format" width="100">
-          <template #default="scope">
-            <el-tag :type="getFormatTagType(scope.row.format)">
-              {{ scope.row.format.toUpperCase() }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="status" label="Status" width="120">
-          <template #default="scope">
-            <el-tag :type="getStatusTagType(scope.row.status)">
-              {{ scope.row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="created_at" label="Created" width="150">
-          <template #default="scope">
-            {{ formatDate(scope.row.created_at) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="size" label="Size" width="100">
-          <template #default="scope">
-            {{ formatFileSize(scope.row.size) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="execution_time" label="Duration" width="100">
-          <template #default="scope">
-            {{ scope.row.execution_time }}s
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="Actions" width="150" fixed="right">
-          <template #default="scope">
-            <el-button-group>
-              <el-button
-                v-if="scope.row.status === 'completed'"
-                size="small"
-                type="primary"
-                @click="downloadReport(scope.row)"
-              >
-                <el-icon><Download /></el-icon>
-              </el-button>
-              
-              <el-button
-                size="small"
-                @click="viewDetails(scope.row)"
-              >
-                <el-icon><View /></el-icon>
-              </el-button>
-              
-              <el-button
-                size="small"
-                type="danger"
-                @click="deleteReport(scope.row)"
-              >
-                <el-icon><Delete /></el-icon>
-              </el-button>
-            </el-button-group>
-          </template>
-        </el-table-column>
-      </el-table>
+            
+            <div class="mobile-card-actions">
+              <el-button-group>
+                <el-button
+                  v-if="report.status === 'completed'"
+                  size="small"
+                  type="primary"
+                  @click="downloadReport(report)"
+                >
+                  <el-icon><Download /></el-icon>
+                </el-button>
+                
+                <el-button
+                  size="small"
+                  @click="viewDetails(report)"
+                >
+                  <el-icon><View /></el-icon>
+                </el-button>
+                
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="deleteReport(report)"
+                >
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </el-button-group>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Desktop Table View -->
+      <div v-else class="desktop-table">
+        <el-table
+          :data="paginatedReports"
+          style="width: 100%"
+          v-loading="loading"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" />
+          
+          <el-table-column prop="name" label="Report Name" min-width="200">
+            <template #default="scope">
+              <div class="report-name">
+                <el-icon class="report-icon"><Document /></el-icon>
+                <div>
+                  <div class="name">{{ scope.row.name }}</div>
+                  <div class="description">{{ scope.row.description }}</div>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="format" label="Format" width="100">
+            <template #default="scope">
+              <el-tag :type="getFormatTagType(scope.row.format)">
+                {{ scope.row.format.toUpperCase() }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="status" label="Status" width="120">
+            <template #default="scope">
+              <el-tag :type="getStatusTagType(scope.row.status)">
+                {{ scope.row.status }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="created_at" label="Created" width="150">
+            <template #default="scope">
+              {{ formatDate(scope.row.created_at) }}
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="size" label="Size" width="100">
+            <template #default="scope">
+              {{ formatFileSize(scope.row.size) }}
+            </template>
+          </el-table-column>
+          
+          <el-table-column prop="execution_time" label="Duration" width="100">
+            <template #default="scope">
+              {{ scope.row.execution_time }}s
+            </template>
+          </el-table-column>
+          
+          <el-table-column label="Actions" width="150" fixed="right">
+            <template #default="scope">
+              <el-button-group>
+                <el-button
+                  v-if="scope.row.status === 'completed'"
+                  size="small"
+                  type="primary"
+                  @click="downloadReport(scope.row)"
+                >
+                  <el-icon><Download /></el-icon>
+                </el-button>
+                
+                <el-button
+                  size="small"
+                  @click="viewDetails(scope.row)"
+                >
+                  <el-icon><View /></el-icon>
+                </el-button>
+                
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="deleteReport(scope.row)"
+                >
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </el-button-group>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
       
       <!-- Pagination -->
       <div class="pagination-wrapper">
@@ -219,17 +293,28 @@
           v-model:page-size="pageSize"
           :page-sizes="[10, 25, 50, 100]"
           :total="totalReports"
-          layout="total, sizes, prev, pager, next, jumper"
+          :layout="paginationLayout"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
+          :small="isMobile"
         />
       </div>
     </el-card>
 
     <!-- Report Details Dialog -->
-    <el-dialog v-model="detailsDialogVisible" title="Report Details" width="700px">
+    <el-dialog 
+      v-model="detailsDialogVisible" 
+      title="Report Details" 
+      :width="isMobile ? '95%' : '700px'"
+      class="details-dialog"
+    >
       <div v-if="selectedReport" class="report-details">
-        <el-descriptions title="Report Information" :column="2" border>
+        <el-descriptions 
+          title="Report Information" 
+          :column="isMobile ? 1 : 2" 
+          border
+          size="small"
+        >
           <el-descriptions-item label="Report Name">
             {{ selectedReport.name }}
           </el-descriptions-item>
@@ -270,7 +355,7 @@
           <el-input
             v-model="selectedReport.query_config"
             type="textarea"
-            :rows="6"
+            :rows="isMobile ? 4 : 6"
             readonly
             class="query-display"
           />
@@ -302,7 +387,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Check, Loading, Close, Download, Refresh, Document, View, Delete
@@ -319,6 +404,20 @@ const pageSize = ref(25)
 const detailsDialogVisible = ref(false)
 const selectedReport = ref(null)
 const selectedReports = ref([])
+const isMobile = ref(false)
+
+// Check if mobile
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+
+// Pagination layout based on device
+const paginationLayout = computed(() => {
+  if (isMobile.value) {
+    return 'prev, pager, next'
+  }
+  return 'total, sizes, prev, pager, next, jumper'
+})
 
 // Mock reports data
 const reports = ref([
@@ -432,6 +531,12 @@ const filteredReports = computed(() => {
 
 const totalReports = computed(() => filteredReports.value.length)
 
+const paginatedReports = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredReports.value.slice(start, end)
+})
+
 const completedCount = computed(() => 
   reports.value.filter(r => r.status === 'completed').length
 )
@@ -454,13 +559,10 @@ const totalSize = computed(() => {
 // Methods
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  const options = isMobile.value ? 
+    { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' } :
+    { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+  return date.toLocaleString('en-US', options)
 }
 
 const formatFileSize = (bytes: number) => {
@@ -560,8 +662,13 @@ const deleteReport = async (report: any) => {
 
 // Initialize
 onMounted(() => {
-  // Load initial data
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   console.log('Report history loaded')
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -569,6 +676,7 @@ onMounted(() => {
 .report-history-view {
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .page-header {
@@ -603,6 +711,13 @@ onMounted(() => {
 
 .stat-card {
   height: 100px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .stat-content {
@@ -621,6 +736,7 @@ onMounted(() => {
   justify-content: center;
   color: white;
   font-size: 20px;
+  flex-shrink: 0;
 }
 
 .stat-icon.success {
@@ -641,6 +757,7 @@ onMounted(() => {
 
 .stat-info {
   flex: 1;
+  min-width: 0;
 }
 
 .stat-number {
@@ -664,11 +781,17 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .table-actions {
   display: flex;
   gap: 10px;
+}
+
+.btn-text {
+  margin-left: 4px;
 }
 
 .report-name {
@@ -680,6 +803,7 @@ onMounted(() => {
 .report-icon {
   color: var(--el-color-primary);
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 .name {
@@ -691,6 +815,72 @@ onMounted(() => {
   font-size: 0.8rem;
   color: var(--el-text-color-regular);
   margin-top: 2px;
+}
+
+.mobile-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.mobile-report-card {
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  padding: 15px;
+  background: var(--el-bg-color);
+  transition: all 0.3s ease;
+}
+
+.mobile-report-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.mobile-card-header .report-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-card-header .report-name span {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  word-break: break-word;
+}
+
+.mobile-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-label {
+  font-size: 0.8rem;
+  color: var(--el-text-color-secondary);
+  font-weight: 500;
+}
+
+.mobile-card-actions {
+  display: flex;
+  justify-content: center;
 }
 
 .pagination-wrapper {
@@ -725,17 +915,141 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
+.details-dialog {
+  margin: 5vh auto;
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .filters-section .el-row {
-    margin: 0;
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .filters-section {
+    padding: 15px;
+    margin-bottom: 20px;
   }
   
   .filters-section .el-col {
     margin-bottom: 15px;
   }
   
+  .stats-row {
+    margin-bottom: 20px;
+  }
+  
   .stats-row .el-col {
     margin-bottom: 15px;
+  }
+  
+  .stat-card {
+    height: 90px;
+  }
+  
+  .stat-content {
+    gap: 12px;
+  }
+  
+  .stat-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+  }
+  
+  .table-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .table-actions {
+    justify-content: center;
+  }
+  
+  .btn-text {
+    display: none;
+  }
+  
+  .report-meta {
+    grid-template-columns: 1fr;
+  }
+  
+  .details-dialog {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.6rem;
+  }
+  
+  .filters-section {
+    padding: 12px;
+  }
+  
+  .stat-card {
+    height: 85px;
+  }
+  
+  .stat-content {
+    gap: 10px;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .stat-number {
+    font-size: 1.3rem;
+  }
+  
+  .mobile-report-card {
+    padding: 12px;
+  }
+  
+  .mobile-card-header .report-name span {
+    font-size: 0.9rem;
+  }
+  
+  .meta-label {
+    font-size: 0.75rem;
+  }
+}
+
+/* Tablet Responsive */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .desktop-table {
+    overflow-x: auto;
+  }
+  
+  .stat-card {
+    height: 95px;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1440px) {
+  .page-header h1 {
+    font-size: 2.2rem;
+  }
+  
+  .stat-card {
+    height: 110px;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
   }
 }
 </style>

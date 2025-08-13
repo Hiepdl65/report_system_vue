@@ -1,18 +1,38 @@
 @import './base.css';
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+/* Force responsive behavior immediately */
+* {
+  box-sizing: border-box !important;
 }
 
+html, body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Mobile-first responsive overrides */
+#app {
+  max-width: 100% !important;
+  margin: 0 auto;
+  font-weight: normal;
+  padding: 0 !important;
+  min-height: 100vh;
+  overflow-x: hidden !important;
+}
+
+/* Responsive links */
 a,
 .green {
   text-decoration: none;
   color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
+  transition: all 0.3s ease;
   padding: 3px;
+  border-radius: 4px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 @media (hover: hover) {
@@ -21,6 +41,151 @@ a,
   }
 }
 
+/* Force Element Plus responsive behavior */
+.el-row {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.el-col {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* Mobile responsive overrides */
+@media (max-width: 768px) {
+  /* Force single column on mobile */
+  .el-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Mobile buttons */
+  .el-button {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    min-height: 44px !important;
+  }
+  
+  .el-button--small {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+  
+  /* Hide button text on mobile */
+  .el-button span:not(.el-icon) {
+    display: none !important;
+  }
+  
+  .el-button .el-icon + span {
+    display: none !important;
+  }
+  
+  /* Mobile forms */
+  .el-form-item {
+    margin-bottom: 15px !important;
+  }
+  
+  .el-input {
+    width: 100% !important;
+  }
+  
+  /* Mobile cards */
+  .el-card {
+    margin-bottom: 15px !important;
+  }
+  
+  .el-card__body {
+    padding: 15px !important;
+  }
+  
+  /* Mobile dialog */
+  .el-dialog {
+    width: 95% !important;
+    margin-top: 5vh !important;
+    margin-bottom: 5vh !important;
+  }
+}
+
+/* Stats cards responsive */
+@media (max-width: 768px) {
+  .stats-row .el-col {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-row .el-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+}
+
+/* Force show/hide classes */
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: block !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .hidden-mobile {
+    display: none !important;
+  }
+}
+
+/* Debug mode - add this class to body to see mobile layout */
+.debug-mobile-mode {
+  background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.debug-mobile-mode * {
+  outline: 1px solid red !important;
+}
+
+/* Force mobile layout class */
+.force-mobile * {
+  max-width: 100% !important;
+}
+
+.force-mobile .el-col {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 0 0 100% !important;
+}
+
+/* Tablet responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .el-col-sm-12 {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+  
+  .el-col-sm-6 {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+}
+
+/* Desktop grid layout fix */
 @media (min-width: 1024px) {
   body {
     display: flex;

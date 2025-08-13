@@ -1,0 +1,314 @@
+/* Responsive CSS Override - Import this after Element Plus */
+
+/* Force responsive behavior */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Mobile-first breakpoints */
+:root {
+  --mobile-breakpoint: 768px;
+  --tablet-breakpoint: 1024px;
+  --desktop-breakpoint: 1280px;
+}
+
+/* Override Element Plus responsive grid */
+.el-row {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.el-col {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* Force responsive table behavior */
+.el-table {
+  width: 100% !important;
+}
+
+.el-table .el-table__body-wrapper {
+  overflow-x: auto !important;
+}
+
+/* Mobile responsive overrides */
+@media (max-width: 768px) {
+  /* Force single column on mobile */
+  .el-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    margin-bottom: 15px !important;
+  }
+  
+  /* Mobile table behavior */
+  .el-table {
+    font-size: 12px !important;
+  }
+  
+  .el-table th,
+  .el-table td {
+    padding: 8px 4px !important;
+  }
+  
+  /* Mobile buttons */
+  .el-button {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+  
+  .el-button--small {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+  
+  /* Mobile forms */
+  .el-form-item {
+    margin-bottom: 15px !important;
+  }
+  
+  .el-input {
+    width: 100% !important;
+  }
+  
+  /* Mobile cards */
+  .el-card {
+    margin-bottom: 15px !important;
+  }
+  
+  .el-card__body {
+    padding: 15px !important;
+  }
+  
+  /* Mobile dialog */
+  .el-dialog {
+    width: 95% !important;
+    margin-top: 5vh !important;
+    margin-bottom: 5vh !important;
+  }
+  
+  /* Mobile pagination */
+  .el-pagination {
+    text-align: center !important;
+  }
+  
+  .el-pagination .el-pagination__total,
+  .el-pagination .el-pagination__sizes {
+    display: none !important;
+  }
+}
+
+/* Tablet responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .el-col-sm-12 {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+  
+  .el-col-sm-6 {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+}
+
+/* Force show/hide classes */
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: block !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .hidden-mobile {
+    display: none !important;
+  }
+}
+
+/* Stats cards responsive */
+.stats-row .el-col {
+  margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+  .stats-row .el-col {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-row .el-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+}
+
+/* Action bar responsive */
+.action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-bar .el-button-group {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+}
+
+/* Templates grid responsive */
+.templates-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .templates-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .templates-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+/* Mobile report cards */
+.mobile-report-card {
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: var(--el-bg-color);
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.mobile-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .report-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Filter section responsive */
+.filters-section .el-row {
+  margin: 0 !important;
+}
+
+.filters-section .el-col {
+  margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+  .filters-section .el-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+}
+
+/* Button text responsive */
+@media (max-width: 768px) {
+  .btn-text {
+    display: none;
+  }
+  
+  .el-button span:not(.el-icon) {
+    display: none;
+  }
+  
+  .el-button .el-icon + span {
+    display: none;
+  }
+}
+
+/* Force mobile behavior for debugging */
+.force-mobile * {
+  max-width: 100% !important;
+}
+
+/* Ensure proper touch targets */
+@media (max-width: 768px) {
+  .el-button,
+  .el-menu-item,
+  a,
+  button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+}
+
+/* Fix Element Plus responsive issues */
+.el-container {
+  height: 100vh !important;
+}
+
+.el-aside {
+  overflow: visible !important;
+}
+
+.el-main {
+  overflow-y: auto !important;
+}
+
+/* Debug helper - add this class to see mobile layout */
+.debug-mobile {
+  outline: 2px solid red !important;
+}
+
+.debug-mobile * {
+  outline: 1px solid blue !important;
+}

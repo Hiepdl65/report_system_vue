@@ -7,35 +7,76 @@
 
     <!-- Action Bar -->
     <div class="action-bar">
-      <el-button-group>
-        <el-button type="primary" @click="previewReport" :loading="isLoading">
-          <el-icon><View /></el-icon>
-          Preview
-        </el-button>
-        <el-button @click="runReport" :loading="isLoading" :disabled="!canGenerateReport">
-          <el-icon><VideoPlay /></el-icon>
-          Run Report
-        </el-button>
-        <el-button @click="exportReport" :loading="isLoading" :disabled="!canGenerateReport">
-          <el-icon><Download /></el-icon>
-          Export
-        </el-button>
-        <el-button @click="saveTemplate" :disabled="!canGenerateReport">
-          <el-icon><Document /></el-icon>
-          Save Template
-        </el-button>
-      </el-button-group>
+      <div class="action-buttons">
+        <el-button-group class="primary-actions">
+          <el-button type="primary" @click="previewReport" :loading="isLoading" size="small">
+            <el-icon><View /></el-icon>
+            <span class="btn-text">Preview</span>
+          </el-button>
+          <el-button @click="runReport" :loading="isLoading" :disabled="!canGenerateReport" size="small">
+            <el-icon><VideoPlay /></el-icon>
+            <span class="btn-text">Run</span>
+          </el-button>
+        </el-button-group>
+        
+        <el-button-group class="secondary-actions">
+          <el-button @click="exportReport" :loading="isLoading" :disabled="!canGenerateReport" size="small">
+            <el-icon><Download /></el-icon>
+            <span class="btn-text">Export</span>
+          </el-button>
+          <el-button @click="saveTemplate" :disabled="!canGenerateReport" size="small">
+            <el-icon><Document /></el-icon>
+            <span class="btn-text">Save</span>
+          </el-button>
+        </el-button-group>
+      </div>
 
-      <el-button @click="clearReport" type="danger" plain>
+      <el-button @click="clearReport" type="danger" plain size="small">
         <el-icon><Delete /></el-icon>
-        Clear
+        <span class="btn-text">Clear</span>
       </el-button>
     </div>
 
+    <!-- Mobile Toggle Buttons -->
+    <div class="mobile-toggles" v-if="isMobile">
+      <el-button-group>
+        <el-button 
+          :type="activePanel === 'sources' ? 'primary' : ''"
+          @click="setActivePanel('sources')"
+          size="small"
+        >
+          <el-icon><Grid /></el-icon>
+          Sources
+        </el-button>
+        <el-button 
+          :type="activePanel === 'canvas' ? 'primary' : ''"
+          @click="setActivePanel('canvas')"
+          size="small"
+        >
+          <el-icon><Edit /></el-icon>
+          Canvas
+        </el-button>
+        <el-button 
+          :type="activePanel === 'config' ? 'primary' : ''"
+          @click="setActivePanel('config')"
+          size="small"
+        >
+          <el-icon><Setting /></el-icon>
+          Config
+        </el-button>
+      </el-button-group>
+    </div>
+
     <!-- Main Builder Layout -->
-    <div class="builder-layout">
+    <div class="builder-layout" :class="{ 'mobile-layout': isMobile }">
       <!-- Left Panel - Data Sources -->
-      <div class="builder-panel left-panel">
+      <div 
+        class="builder-panel left-panel"
+        :class="{ 
+          'panel-hidden': isMobile && activePanel !== 'sources',
+          'panel-mobile': isMobile 
+        }"
+      >
         <div class="panel-header">
           <el-icon><Grid /></el-icon>
           <span>Data Sources</span>
@@ -49,6 +90,7 @@
               class="data-source-item"
               draggable="true"
               @dragstart="onDragStart($event, table)"
+              @touchstart="onTouchStart($event, table)"
             >
               <div class="source-header">
                 <el-icon class="source-icon"><Grid /></el-icon>
@@ -72,14 +114,20 @@
       </div>
 
       <!-- Center Panel - Canvas -->
-      <div class="builder-panel center-panel">
+      <div 
+        class="builder-panel center-panel"
+        :class="{ 
+          'panel-hidden': isMobile && activePanel !== 'canvas',
+          'panel-mobile': isMobile 
+        }"
+      >
         <div class="panel-header">
           <el-icon><Edit /></el-icon>
           <span>Report Canvas</span>
           <div class="canvas-actions">
             <el-button size="small" @click="showQueryEditor = !showQueryEditor">
               <el-icon><Document /></el-icon>
-              {{ showQueryEditor ? 'Hide' : 'Show' }} SQL
+              <span class="btn-text">{{ showQueryEditor ? 'Hide' : 'Show' }} SQL</span>
             </el-button>
           </div>
         </div>
@@ -92,11 +140,15 @@
             @drop="onDrop($event)"
             @dragover.prevent
             @dragenter.prevent
+            @touchend="onTouchEnd($event)"
           >
             <div v-if="!hasSelectedTables" class="drop-zone-empty">
               <el-icon class="drop-icon"><Upload /></el-icon>
               <h3>Drag tables here to start building your report</h3>
               <p>Select data sources from the left panel and drag them to this area</p>
+              <div class="mobile-instruction" v-if="isMobile">
+                <p><strong>Mobile:</strong> Tap on a table in Sources tab to add it</p>
+              </div>
             </div>
             
             <div v-else class="selected-tables">
@@ -141,13 +193,13 @@
               <span>Generated SQL Query</span>
               <el-button size="small" @click="copyQuery">
                 <el-icon><CopyDocument /></el-icon>
-                Copy
+                <span class="btn-text">Copy</span>
               </el-button>
             </div>
             <el-input
               v-model="generatedQuery"
               type="textarea"
-              :rows="8"
+              :rows="6"
               readonly
               class="query-textarea"
             />
@@ -159,21 +211,29 @@
               <span>Data Preview ({{ reportData.length }} rows)</span>
               <el-tag type="success">{{ executionTime }}s</el-tag>
             </div>
-            <el-table :data="reportData" style="width: 100%" max-height="400">
-              <el-table-column
-                v-for="column in reportColumns"
-                :key="column"
-                :prop="column"
-                :label="column"
-                min-width="120"
-              />
-            </el-table>
+            <div class="table-container">
+              <el-table :data="reportData" style="width: 100%" max-height="400">
+                <el-table-column
+                  v-for="column in reportColumns"
+                  :key="column"
+                  :prop="column"
+                  :label="column"
+                  min-width="120"
+                />
+              </el-table>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Right Panel - Configuration -->
-      <div class="builder-panel right-panel">
+      <div 
+        class="builder-panel right-panel"
+        :class="{ 
+          'panel-hidden': isMobile && activePanel !== 'config',
+          'panel-mobile': isMobile 
+        }"
+      >
         <div class="panel-header">
           <el-icon><Setting /></el-icon>
           <span>Configuration</span>
@@ -186,7 +246,7 @@
               <h4>Filters</h4>
               <el-button size="small" @click="addFilter">
                 <el-icon><Plus /></el-icon>
-                Add Filter
+                <span class="btn-text">Add</span>
               </el-button>
             </div>
             
@@ -200,42 +260,46 @@
                 :key="index"
                 class="filter-item"
               >
-                <el-select v-model="filter.table_alias" placeholder="Table" size="small">
-                  <el-option
-                    v-for="table in selectedTables"
-                    :key="table.alias"
-                    :label="table.name"
-                    :value="table.alias"
-                  />
-                </el-select>
+                <div class="filter-row">
+                  <el-select v-model="filter.table_alias" placeholder="Table" size="small">
+                    <el-option
+                      v-for="table in selectedTables"
+                      :key="table.alias"
+                      :label="table.name"
+                      :value="table.alias"
+                    />
+                  </el-select>
+                  
+                  <el-select v-model="filter.column" placeholder="Column" size="small">
+                    <el-option
+                      v-for="field in getTableFields(getTableNameByAlias(filter.table_alias))"
+                      :key="field"
+                      :label="field"
+                      :value="field"
+                    />
+                  </el-select>
+                </div>
                 
-                <el-select v-model="filter.column" placeholder="Column" size="small">
-                  <el-option
-                    v-for="field in getTableFields(getTableNameByAlias(filter.table_alias))"
-                    :key="field"
-                    :label="field"
-                    :value="field"
-                  />
-                </el-select>
-                
-                <el-select v-model="filter.operator" placeholder="Operator" size="small">
-                  <el-option label="Equals" value="=" />
-                  <el-option label="Not Equals" value="!=" />
-                  <el-option label="Greater Than" value=">" />
-                  <el-option label="Less Than" value="<" />
-                  <el-option label="Contains" value="LIKE" />
-                </el-select>
-                
-                <el-input v-model="filter.value" placeholder="Value" size="small" />
-                
-                <el-button
-                  size="small"
-                  type="danger"
-                  circle
-                  @click="removeFilter(index)"
-                >
-                  <el-icon><Delete /></el-icon>
-                </el-button>
+                <div class="filter-row">
+                  <el-select v-model="filter.operator" placeholder="Operator" size="small">
+                    <el-option label="Equals" value="=" />
+                    <el-option label="Not Equals" value="!=" />
+                    <el-option label="Greater Than" value=">" />
+                    <el-option label="Less Than" value="<" />
+                    <el-option label="Contains" value="LIKE" />
+                  </el-select>
+                  
+                  <el-input v-model="filter.value" placeholder="Value" size="small" />
+                  
+                  <el-button
+                    size="small"
+                    type="danger"
+                    circle
+                    @click="removeFilter(index)"
+                  >
+                    <el-icon><Delete /></el-icon>
+                  </el-button>
+                </div>
               </div>
             </div>
           </div>
@@ -246,7 +310,7 @@
               <h4>Sorting</h4>
               <el-button size="small" @click="addSort">
                 <el-icon><Plus /></el-icon>
-                Add Sort
+                <span class="btn-text">Add</span>
               </el-button>
             </div>
             
@@ -302,7 +366,7 @@
     </div>
 
     <!-- Save Template Dialog -->
-    <el-dialog v-model="saveDialogVisible" title="Save Template" width="500px">
+    <el-dialog v-model="saveDialogVisible" title="Save Template" width="90%" class="template-dialog">
       <el-form :model="templateForm" label-width="100px">
         <el-form-item label="Template Name">
           <el-input v-model="templateForm.name" placeholder="Enter template name" />
@@ -329,7 +393,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useReportStore } from '@/stores/report'
 import { apiService } from '@/services/api'
@@ -343,6 +407,8 @@ const reportStore = useReportStore()
 // Reactive data
 const showQueryEditor = ref(false)
 const saveDialogVisible = ref(false)
+const isMobile = ref(false)
+const activePanel = ref('canvas')
 const templateForm = ref({
   name: '',
   description: '',
@@ -383,7 +449,6 @@ const generatedQuery = computed(() => {
   
   let joinClause = ''
   if (selectedTables.value.length > 1) {
-    // Simple join logic - in real app this would be more sophisticated
     if (selectedTables.value.some(t => t.name === 'orders') && selectedTables.value.some(t => t.name === 'customers')) {
       joinClause = '\nLEFT JOIN customers c ON o.customer_id = c.id'
     }
@@ -410,9 +475,25 @@ LIMIT ${queryLimit.value};`
 })
 
 // Methods
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 1024
+}
+
+const setActivePanel = (panel: string) => {
+  activePanel.value = panel
+}
+
 const onDragStart = (event: DragEvent, table: any) => {
   if (event.dataTransfer) {
     event.dataTransfer.setData('application/json', JSON.stringify(table))
+  }
+}
+
+const onTouchStart = (event: TouchEvent, table: any) => {
+  if (isMobile.value) {
+    // For mobile, directly add table on touch
+    reportStore.addTable(table)
+    setActivePanel('canvas')
   }
 }
 
@@ -423,6 +504,11 @@ const onDrop = (event: DragEvent) => {
     const table = JSON.parse(data)
     reportStore.addTable(table)
   }
+}
+
+const onTouchEnd = (event: TouchEvent) => {
+  // Handle mobile touch interactions
+  event.preventDefault()
 }
 
 const getTableFields = (tableName: string) => {
@@ -496,6 +582,9 @@ const previewReport = async () => {
     if (response.success) {
       reportStore.setReportData(response.data || [], response.columns || [])
       ElMessage.success('Preview generated successfully')
+      if (isMobile.value) {
+        setActivePanel('canvas')
+      }
     } else {
       ElMessage.error(response.message || 'Failed to generate preview')
     }
@@ -527,6 +616,9 @@ const runReport = async () => {
     if (response.success) {
       reportStore.setReportData(response.data || [], response.columns || [])
       ElMessage.success('Report generated successfully')
+      if (isMobile.value) {
+        setActivePanel('canvas')
+      }
     } else {
       ElMessage.error(response.message || 'Failed to generate report')
     }
@@ -554,7 +646,6 @@ const exportReport = async () => {
     })
     
     if (response.success && response.export_file_url) {
-      // Download file
       const link = document.createElement('a')
       link.href = response.export_file_url
       link.download = 'report.xlsx'
@@ -603,11 +694,16 @@ const copyQuery = () => {
 
 // Initialize
 onMounted(() => {
-  // Load available tables
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+  
   apiService.getTables().then(tables => {
-    // In real app, this would update the store
     console.log('Available tables:', tables)
   })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -645,14 +741,42 @@ onMounted(() => {
   background: var(--el-bg-color);
   border-radius: 8px;
   border: 1px solid var(--el-border-color-light);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-text {
+  margin-left: 4px;
+}
+
+.mobile-toggles {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  background: var(--el-bg-color);
+  border-radius: 8px;
+  border: 1px solid var(--el-border-color-light);
 }
 
 .builder-layout {
   display: grid;
   grid-template-columns: 300px 1fr 350px;
   gap: 20px;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 300px);
   min-height: 600px;
+}
+
+.mobile-layout {
+  display: block;
+  height: auto;
+  min-height: auto;
 }
 
 .builder-panel {
@@ -664,6 +788,15 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.panel-mobile {
+  margin-bottom: 20px;
+  min-height: 400px;
+}
+
+.panel-hidden {
+  display: none;
+}
+
 .panel-header {
   display: flex;
   align-items: center;
@@ -672,6 +805,7 @@ onMounted(() => {
   background: linear-gradient(135deg, var(--el-color-primary), #7c3aed);
   color: white;
   font-weight: 600;
+  justify-content: space-between;
 }
 
 .panel-content {
@@ -704,6 +838,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .source-icon {
@@ -713,6 +848,7 @@ onMounted(() => {
 .source-name {
   font-weight: 600;
   flex: 1;
+  min-width: 0;
 }
 
 .source-fields {
@@ -739,16 +875,18 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  text-align: center;
+  padding: 20px;
 }
 
 .drop-zone.has-tables {
   border-style: solid;
   border-color: var(--el-color-primary);
   background: rgba(64, 158, 255, 0.05);
+  align-items: flex-start;
 }
 
 .drop-zone-empty {
-  text-align: center;
   color: var(--el-text-color-regular);
 }
 
@@ -756,6 +894,13 @@ onMounted(() => {
   font-size: 3rem;
   color: var(--el-color-primary);
   margin-bottom: 15px;
+}
+
+.mobile-instruction {
+  margin-top: 15px;
+  padding: 10px;
+  background: var(--el-bg-color);
+  border-radius: 6px;
 }
 
 .selected-tables {
@@ -775,6 +920,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .table-fields {
@@ -814,6 +960,12 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 10px;
   font-weight: 600;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.table-container {
+  overflow-x: auto;
 }
 
 .config-section {
@@ -841,18 +993,36 @@ onMounted(() => {
 
 .filter-item,
 .sort-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 6px;
+  background: var(--el-bg-color-page);
+}
+
+.filter-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   align-items: center;
 }
 
-.filter-item .el-select,
-.sort-item .el-select {
+.filter-row:last-child {
+  margin-bottom: 0;
+}
+
+.filter-row .el-select,
+.filter-row .el-input {
   flex: 1;
 }
 
-.filter-item .el-input {
+.sort-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sort-item .el-select {
   flex: 1;
 }
 
@@ -860,16 +1030,120 @@ onMounted(() => {
   margin-left: auto;
 }
 
-@media (max-width: 1200px) {
+.template-dialog {
+  max-width: 500px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
   .builder-layout {
-    grid-template-columns: 250px 1fr 300px;
+    grid-template-columns: 1fr;
+  }
+  
+  .mobile-layout .builder-panel {
+    height: auto;
   }
 }
 
 @media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .action-bar {
+    padding: 10px;
+  }
+  
+  .action-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-text {
+    display: none;
+  }
+  
+  .panel-header {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+  
+  .panel-content {
+    padding: 12px;
+  }
+  
+  .drop-zone {
+    min-height: 150px;
+    padding: 15px;
+  }
+  
+  .drop-icon {
+    font-size: 2.5rem;
+  }
+  
+  .config-section {
+    margin-bottom: 20px;
+  }
+  
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .sort-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .template-dialog {
+    max-width: 95%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.6rem;
+  }
+  
+  .action-bar {
+    padding: 8px;
+  }
+  
+  .mobile-toggles {
+    padding: 8px;
+  }
+  
+  .source-header {
+    gap: 6px;
+  }
+  
+  .table-header {
+    gap: 6px;
+  }
+  
+  .drop-zone {
+    min-height: 120px;
+    padding: 10px;
+  }
+  
+  .drop-zone h3 {
+    font-size: 1.1rem;
+  }
+  
+  .drop-zone p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1440px) {
   .builder-layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 350px 1fr 400px;
+    height: calc(100vh - 280px);
+  }
+  
+  .page-header h1 {
+    font-size: 2.2rem;
   }
 }
 </style>

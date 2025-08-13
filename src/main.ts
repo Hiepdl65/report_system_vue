@@ -1,9 +1,14 @@
-import './assets/main.css'
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
+
+// IMPORTANT: Import order matters!
+// 1. First import Element Plus CSS
 import 'element-plus/dist/index.css'
+// 2. Then import our custom CSS (will override Element Plus)
+// Import CSS files in correct order
+import './assets/main.css'
+
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'

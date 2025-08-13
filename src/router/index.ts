@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import ReportBuilderView from '../views/ReportBuilderView.vue'
 import TemplatesView from '../views/TemplatesView.vue'
 import ReportHistoryView from '../views/ReportHistoryView.vue'
+import TestResponsive from '../views/TestResponsive.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/history',
       name: 'report-history',
       component: ReportHistoryView
+    },
+    {
+      path: '/test-responsive',
+      name: 'test-responsive',
+      component: TestResponsive
     }
   ]
 })
